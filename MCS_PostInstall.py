@@ -1,4 +1,4 @@
-import os, subprocess
+import os, subprocess, time
 import RPi.GPIO as GPIO
 
 instconf=False
@@ -52,6 +52,14 @@ def installconfigtxt():
 		fo1.close()
 		print("config.txt entries created")
 	except: print ("cannot create config entrys")
+	
+	try:
+		os.system('rm -f /etc/network/interfaces.d/can*')
+		interfaceFile = '/etc/network/interfaces.d/can0'
+		file = open(interfaceFile, 'w')
+		file.write('#physical can interfaces\nallow-hotplug can0\niface can0 can static\nbitrate 250000\ndown /sbin/ip link set $IFACE down\nup /sbin/ifconfig $IFACE txqueuelen 10000')
+		file.close()
+	except: print ("cannot create can interface entries")
 
 def installowire(): 
     ######added 1-wire modules
@@ -115,7 +123,9 @@ if MCSexists and instowire:
 ###############Start I2C 1-Wire device
 
 if MCSexists and instconf:
-	os.system("sudo shutdown -h now")
+	time.sleep(10)
+	print ("reboot")
+	#os.system("sudo reboot")
 
 try:
 	os.system("echo '0x18' | sudo tee /sys/class/i2c-adapter/i2c-1/delete_device")
